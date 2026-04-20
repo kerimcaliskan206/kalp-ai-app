@@ -1,0 +1,68 @@
+html, body, .stApp {
+    background: linear-gradient(135deg, #000000, #0f2027);
+    color: white;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Başlık */
+h1 {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 5px;
+}
+
+p {
+    text-align: center;
+    opacity: 0.7;
+}
+
+/* CAM EFEKTİ */
+.card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    padding: 20px;
+    border-radius: 20px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Buton */
+.stButton > button {
+    background: linear-gradient(135deg, #00ff88, #00c853);
+    color: black;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: bold;
+    border: none;
+}
+
+/* Slider */
+.stSlider > div {
+    color: #00ff88;
+}
+
+/* Selectbox */
+.stSelectbox div {
+    background-color: rgba(255,255,255,0.05);
+}
+/* ÜST BAŞLIK ALANI */
+.header-box {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* AYRI KART */
+.result-card {
+    background: rgba(0, 255, 150, 0.08);
+    border: 1px solid rgba(0,255,150,0.2);
+    padding: 20px;
+    border-radius: 20px;
+    margin-top: 20px;
+}
+
+/* ALT TEXT */
+.small-text {
+    text-align: center;
+    opacity: 0.6;
+    font-size: 14px;
+}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kalp Sağlığı</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+    <div class="card">
+
+        <h1>❤️ Kalp Sağlığı</h1>
+        <p>Riskinizi öğrenin</p>
+
+        <form method="POST">
+
+            <input type="number" name="age" placeholder="Yaş" required>
+
+            <select name="sex">
+                <option value="0">Kadın</option>
+                <option value="1">Erkek</option>
+            </select>
+
+            <select name="cp">
+                <option value="1">Tipik ağrı (yüksek risk)</option>
+                <option value="2">Orta</option>
+                <option value="3">Hafif</option>
+                <option value="4">Ağrı yok</option>
+            </select>
+
+            <select name="trestbps">
+                <option value="120">Normal tansiyon</option>
+                <option value="150">Yüksek tansiyon</option>
+            </select>
+
+            <select name="chol">
+                <option value="200">Normal kolesterol</option>
+                <option value="260">Yüksek kolesterol</option>
+            </select>
+
+            <select name="exang">
+                <option value="0">Egzersizde ağrı yok</option>
+                <option value="1">Egzersizde ağrı var</option>
+            </select>
+
+            <input type="number" name="thalach" placeholder="Kalp atış hızı (örn: 150)" required>
+
+            <input type="number" step="0.1" name="oldpeak" placeholder="Efor sonrası ağrı (örn: 2.0)" required>
+
+            <button type="submit">Tahmin Et</button>
+
+        </form>
+
+        {% if risk %}
+            <div class="result">
+                Risk: %{{ risk }}
+            </div>
+
+            <div class="progress">
+                <div class="progress-bar 
+                {% if risk < 30 %}low
+                {% elif risk < 70 %}mid
+                {% else %}high
+                {% endif %}
+                " style="width: {{ risk }}%;"></div>
+            </div>
+
+            {% if risk < 30 %}
+                <p style="color:#00ff88;">Genel durum iyi 👍</p>
+            {% elif risk < 70 %}
+                <p style="color:#ffcc00;">Dikkat etmelisin ⚠️</p>
+            {% else %}
+                <p style="color:#ff4d4d;">Risk yüksek 🚨</p>
+            {% endif %}
+
+            <!-- 🔥 YENİ EKLEDİĞİMİZ KISIM -->
+            {% if yorumlar %}
+                <div style="margin-top:20px;">
+                    <h3>Neden bu sonuç?</h3>
+                    <ul style="text-align:left;">
+                        {% for y in yorumlar %}
+                            <li>{{ y }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+        {% endif %}
+
+    </div>
+</div>
+
+</body>
+</html>
