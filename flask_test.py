@@ -9,7 +9,7 @@ model, mean_values, scaler = load_model()
 def home():
     if request.method == "POST":
         try:
-            # Form verilerini alıyoruz
+            # Formdan gelen veriler
             age = int(request.form.get("age", 40))
             sex = int(request.form.get("sex", 1))
             cp = int(request.form.get("cp", 4))
@@ -20,7 +20,7 @@ def home():
             thalach = float(request.form.get("thalach", 80))
             oldpeak = float(request.form.get("oldpeak", 0))
 
-            # 13 özellikli giriş (Modelin tam istediği format)
+            # 13 Sütunluk Giriş (Modelin tam istediği sıra)
             input_array = np.array([[
                 age, sex, cp, trestbps, chol, fbs,
                 float(mean_values.get("restecg", 0)),
@@ -35,18 +35,18 @@ def home():
             prob = model.predict_proba(scaled_input)
             risk = prob[0][1] * 100
 
-            # Halk ağzıyla sonuç yorumlama
+            # Halk ağzıyla yorumlar
             yorumlar = []
             if risk > 65:
-                yorumlar.append("Sonuçlar biraz yüksek, bir doktora görünmeniz iyi olabilir.")
+                yorumlar.append("Sonuçlar biraz yüksek görünüyor, bir kontrol yaptırmanız iyi olabilir.")
             elif risk > 30:
-                yorumlar.append("Bazı değerleriniz sınırda, kendinizi yormamaya çalışın.")
+                yorumlar.append("Bazı değerleriniz sınırda, dinlenmeye ve sağlıklı beslenmeye dikkat edin.")
             else:
-                yorumlar.append("Kalp sağlığınız şu an gayet iyi görünüyor.")
+                yorumlar.append("Kalp sağlığınız şu an gayet iyi durumda görünüyor.")
 
             return render_template("index.html", risk=round(risk, 1), yorumlar=yorumlar)
         except:
-            return render_template("index.html", risk=0, yorumlar=["Analiz yapılamadı."])
+            return render_template("index.html", risk=0, yorumlar=["Analiz sırasında bir hata oluştu."])
             
     return render_template("index.html")
 
