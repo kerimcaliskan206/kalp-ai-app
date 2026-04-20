@@ -1,0 +1,99 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    color: white;
+    overflow-x: hidden;
+    background: #000;
+}
+
+* { box-sizing: border-box; }
+
+.bg {
+    position: fixed;
+    width: 100%; height: 100%; z-index: -1;
+    /* Resmin üzerine hafif bir karartma atıyoruz ki yazılar okunsun */
+    background: 
+        linear-gradient(90deg, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.3) 100%), 
+        url("/static/bg.jpg") no-repeat center center fixed;
+    background-size: cover;
+}
+
+.container {
+    display: flex;
+    /* KARTI SOLA ALAN KISIM */
+    justify-content: flex-start; 
+    align-items: center;
+    min-height: 100vh;
+    padding: 40px;
+}
+
+.card {
+    background: rgba(15, 15, 15, 0.75);
+    backdrop-filter: blur(15px);
+    padding: 35px;
+    border-radius: 25px;
+    max-width: 420px;
+    width: 100%;
+    border: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+    /* Soldan biraz boşluk bırakalım ki yapışık durmasın */
+    margin-left: 5%; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.title { color: #00ff88; margin-bottom: 10px; font-weight: 800; }
+
+label {
+    display: block;
+    text-align: left;
+    margin: 15px 0 5px 5px;
+    font-size: 0.9rem;
+    color: #00ff88;
+    font-weight: 600;
+}
+
+input[type="number"], select {
+    width: 100%; padding: 12px; margin-bottom: 5px;
+    border-radius: 12px; border: none;
+    background: rgba(255,255,255,0.1); color: white;
+    outline: none;
+}
+
+/* SLIDER TASARIMI */
+input[type="range"] {
+    -webkit-appearance: none; width: 100%; height: 8px;
+    border-radius: 5px; outline: none; margin: 15px 0;
+    background: #333;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px;
+    background: #fff; border-radius: 50%; cursor: pointer;
+    border: 2px solid #00ff88;
+}
+
+button {
+    width: 100%; padding: 15px; margin-top: 20px;
+    border-radius: 12px; border: none;
+    background: #00ff88; color: #000;
+    font-weight: bold; cursor: pointer; transition: 0.3s;
+}
+
+button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,255,136,0.3); }
+
+.result { margin-top: 25px; font-size: 1.5rem; font-weight: bold; color: #00ff88; }
+
+.progress {
+    width: 100%; height: 12px; background: rgba(255,255,255,0.1);
+    border-radius: 10px; margin: 15px 0; overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%; background: linear-gradient(90deg, #00ff88, #ffcc00, #ff4d4d);
+    transition: width 1s ease;
+}
+
+.comments {
+    text-align: left; background: rgba(255,255,255,0.05);
+    padding: 15px; border-radius: 12px; border-left: 4px solid #00ff88;
+}
