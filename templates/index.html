@@ -1,179 +1,82 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Kalp Sağlığı</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>Kalp Sağlığı Testi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
-
-<!-- ARKA PLAN -->
-<div class="bg">
-    <div class="grid"></div>
-    <div class="aurora"></div>
-    <div class="vignette"></div>
-
-    <!-- EKG -->
-    <div class="ekg">
-        <div class="ekg-track">
-
-            <!-- 1. SVG -->
-            <svg class="ekgSvg" viewBox="0 0 500 100">
-                <polyline class="ekg-line"
-                points="0,50 40,50 50,20 60,80 70,50 120,50 150,50 160,20 170,80 180,50 500,50"/>
-            </svg>
-
-            <!-- 2. SVG (OFFSET ile kopma yok) -->
-            <svg class="ekgSvg" viewBox="0 0 500 100">
-                <polyline class="ekg-line"
-                points="0,50 0,50 0,50 0,50 40,50 50,20 60,80 70,50 120,50 150,50 160,20 170,80 180,50 500,50"/>
-            </svg>
-
-        </div>
+<div class="bg"></div>
+<div class="container">
+    <div class="card">
+        <h1 class="title">Kalp Sağlığı <span class="heart">❤️</span></h1>
+        <form method="POST">
+            <input type="number" name="age" placeholder="Yaşınız" required>
+            <label>Cinsiyet</label>
+            <select name="sex">
+                <option value="1">Erkek</option>
+                <option value="0">Kadın</option>
+            </select>
+            <label>Göğsünüzde sıkışma veya ağrı var mı?</label>
+            <select name="cp">
+                <option value="4">Hiç ağrı yok</option>
+                <option value="3">Çok hafif</option>
+                <option value="2">Bazen rahatsız ediyor</option>
+                <option value="1">Şiddetli baskı var</option>
+            </select>
+            <label>Tansiyonunuz genellikle nasıldır?</label>
+            <select name="trestbps">
+                <option value="120">Normal</option>
+                <option value="150">Yüksek</option>
+            </select>
+            <label>Kolesterol durumunuz nedir?</label>
+            <select name="chol">
+                <option value="200">Normal</option>
+                <option value="260">Yüksek</option>
+            </select>
+            <label>Şekeriniz nasıl?</label>
+            <select name="fbs">
+                <option value="0">Normal</option>
+                <option value="1">Yüksek / Şekerim var</option>
+            </select>
+            <label>Yorulunca göğsünüz ağrıyor mu?</label>
+            <select name="exang">
+                <option value="0">Hayır</option>
+                <option value="1">Evet</option>
+            </select>
+            <div class="field">
+                <label>Kalp atış hızınız (Nabız):</label>
+                <input type="range" id="thalach" name="thalach" min="60" max="200" value="80" oninput="updateHR(this)">
+                <div class="value">Atış: <span id="hrVal">80</span></div>
+            </div>
+            <div class="field">
+                <label>Varsa ağrınızın şiddeti: (0-5)</label>
+                <input type="range" id="pain" name="oldpeak" min="0" max="5" step="0.5" value="0" oninput="updatePain(this)">
+                <div class="value">Şiddet: <span id="painVal">0</span></div>
+            </div>
+            <button type="submit">Analiz Et</button>
+        </form>
+        {% if risk %}
+            <div class="result">Risk: %{{ risk }}</div>
+            <div class="progress"><div class="progress-bar" style="width: {{ risk }}%;"></div></div>
+            <div class="comments">{% for y in yorumlar %}<p>• {{ y }}</p>{% endfor %}</div>
+        {% endif %}
     </div>
 </div>
-
-<!-- CONTENT -->
-<div class="container">
-<div class="card">
-
-<h1 class="title">
-Kalp Sağlığı Analizi <span class="heart">❤️</span>
-</h1>
-
-<p>Riskinizi öğrenin</p>
-
-<form method="POST">
-
-<input type="number" name="age" placeholder="Yaş" required>
-
-<select name="sex">
-<option value="0">Kadın</option>
-<option value="1">Erkek</option>
-</select>
-
-<select name="cp">
-<option value="1">Şiddetli göğüs ağrısı</option>
-<option value="2">Orta</option>
-<option value="3">Hafif</option>
-<option value="4">Yok</option>
-</select>
-
-<select name="trestbps">
-<option value="120">Normal</option>
-<option value="150">Yüksek</option>
-</select>
-
-<select name="chol">
-<option value="200">Normal</option>
-<option value="260">Yüksek</option>
-</select>
-
-<select name="exang">
-<option value="0">Yok</option>
-<option value="1">Var</option>
-</select>
-
-<!-- SLIDER 1 -->
-<div class="field">
-<label>Kalp atış hızı</label>
-
-<input type="range"
-id="thalach"
-name="thalach"
-min="60"
-max="200"
-value="120"
-oninput="updateHR(this); updateEKG(this.value)">
-
-<div class="value">
-Değer: <span id="hrVal">120</span>
-</div>
-</div>
-
-<!-- SLIDER 2 -->
-<div class="field">
-<label>Ağrı seviyesi</label>
-
-<input type="range"
-id="pain"
-name="oldpeak"
-min="1"
-max="5"
-value="2"
-oninput="updatePain(this)">
-
-<div class="value">
-Seviye: <span id="painVal">2</span>
-</div>
-</div>
-
-<button type="submit">Tahmin Et</button>
-
-</form>
-
-{% if risk %}
-<div class="result">Risk: %{{ risk }}</div>
-<div class="progress">
-<div class="progress-bar" style="width: {{ risk }}%;"></div>
-</div>
-{% endif %}
-
-</div>
-</div>
-
-<!-- JS -->
 <script>
-
-function updateHR(slider){
-let v = slider.value;
-document.getElementById("hrVal").innerText = v;
-
-let percent = (v - slider.min) / (slider.max - slider.min) * 100;
-let color = v < 100 ? "#00ff88" : v < 140 ? "#ffcc00" : "#ff4d4d";
-
-slider.style.background = `linear-gradient(to right,${color} 0%,${color} ${percent}%,#333 ${percent}%,#333 100%)`;
+function updateHR(s){
+    let v = s.value; document.getElementById("hrVal").innerText = v;
+    let p = (v-s.min)/(s.max-s.min)*100;
+    let c = v < 100 ? "#00ff88" : v < 145 ? "#ffcc00" : "#ff4d4d";
+    s.style.background = `linear-gradient(to right, ${c} ${p}%, #333 ${p}%)`;
 }
-
-function updatePain(slider){
-let v = slider.value;
-document.getElementById("painVal").innerText = v;
-
-let percent = (v - slider.min) / (slider.max - slider.min) * 100;
-let color = v <= 2 ? "#00ff88" : v == 3 ? "#ffcc00" : "#ff4d4d";
-
-slider.style.background = `linear-gradient(to right,${color} 0%,${color} ${percent}%,#333 ${percent}%,#333 100%)`;
+function updatePain(s){
+    let v = s.value; document.getElementById("painVal").innerText = v;
+    let p = (v-s.min)/(s.max-s.min)*100;
+    let c = v <= 1.5 ? "#00ff88" : v <= 3.5 ? "#ffcc00" : "#ff4d4d";
+    s.style.background = `linear-gradient(to right, ${c} ${p}%, #333 ${p}%)`;
 }
-
-function updateEKG(val){
-const track = document.querySelector(".ekg-track");
-const svgs = document.querySelectorAll(".ekgSvg");
-
-let speed = val > 170 ? 1.2 : val > 140 ? 1.8 : val > 110 ? 2.5 : 3.5;
-track.style.animationDuration = speed + "s";
-
-let wave =
-val > 170 ? "0,50 30,50 40,25 50,75 60,50 80,50 100,50 110,25 120,75 130,50 150,50 160,25 170,75 180,50 500,50" :
-val > 140 ? "0,50 40,50 50,20 60,80 70,50 110,50 140,50 150,20 160,80 170,50 500,50" :
-"0,50 50,50 60,30 70,70 80,50 150,50 200,50 210,30 220,70 230,50 500,50";
-
-svgs.forEach(svg => {
-svg.querySelector("polyline").setAttribute("points", wave);
-});
-}
-
-/* 🔥 GARANTİ BAŞLATMA */
-document.addEventListener("DOMContentLoaded", function(){
-const hr = document.getElementById("thalach");
-const pain = document.getElementById("pain");
-
-updateHR(hr);
-updatePain(pain);
-updateEKG(hr.value);
-});
-
+document.addEventListener("DOMContentLoaded", () => { updateHR(document.getElementById("thalach")); updatePain(document.getElementById("pain")); });
 </script>
-
 </body>
 </html>
