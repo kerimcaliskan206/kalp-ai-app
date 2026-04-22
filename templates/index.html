@@ -2,81 +2,218 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Kalp Sağlığı Testi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Kalp Sağlığı Analizi | AI Karar Destek Sistemi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body, button, input, select { font-family: 'Poppins', sans-serif; }
+        
+        /* Formu genel olarak ortalayan konteyner */
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 500px; /* Bilgisayarda çok yayılmaması için */
+            background: rgba(255, 255, 255, 0.1); /* Hafif şeffaf arka plan */
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .field { margin-bottom: 22px; text-align: left; }
+        .field label { display: block; margin-bottom: 8px; font-weight: 600; color: #fff; font-size: 0.9em; }
+        .range-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .current-value { background: #00d2ff; color: #000; padding: 2px 10px; border-radius: 6px; font-weight: bold; font-size: 0.85em; transition: 0.3s; }
+        
+        input[type="range"] { width: 100%; height: 12px; border-radius: 10px; appearance: none; background: #333; outline: none; cursor: pointer; }
+        .range-labels { display: flex; justify-content: space-between; color: #888; font-size: 0.75em; margin-top: 5px; }
+        
+        .flex-row { display: flex; gap: 15px; }
+        select, input[type="number"] { 
+            width: 100%; 
+            padding: 12px; 
+            border-radius: 10px; 
+            border: 1px solid #444; 
+            background: rgba(0,0,0,0.3); 
+            color: #fff; 
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        button { 
+            width: 100%; 
+            padding: 15px; 
+            border: none; 
+            border-radius: 10px; 
+            background: #00d2ff; 
+            color: #000; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: 0.3s; 
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        /* TELEFONLAR İÇİN ÖZEL AYARLAR (Mobile Responsive) */
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+                align-items: flex-start; /* Mobilde çok yukarıda kalmaması için */
+                padding-top: 30px;
+            }
+            .card {
+                padding: 20px;
+                border-radius: 15px;
+            }
+            .flex-row {
+                flex-direction: column; /* Mobilde yan yana olanları alt alta getirir */
+                gap: 10px;
+            }
+            .title { font-size: 1.5em; text-align: center; }
+        }
+    </style>
 </head>
 <body>
 <div class="bg"></div>
 <div class="container">
     <div class="card">
-        <h1 class="title">Kalp Sağlığı <span class="heart">❤️</span></h1>
+        <h1 class="title">Kalp Sağlığı Analizi <span class="heart">❤️</span></h1>
+        
         <form method="POST">
-            <input type="number" name="age" placeholder="Yaşınız" required>
-            <label>Cinsiyet</label>
-            <select name="sex">
-                <option value="1">Erkek</option>
-                <option value="0">Kadın</option>
-            </select>
-            <label>Göğsünüzde sıkışma veya ağrı var mı?</label>
-            <select name="cp">
-                <option value="4">Hiç ağrı yok</option>
-                <option value="3">Çok hafif</option>
-                <option value="2">Bazen rahatsız ediyor</option>
-                <option value="1">Şiddetli baskı var</option>
-            </select>
-            <label>Tansiyonunuz genellikle nasıldır?</label>
-            <select name="trestbps">
-                <option value="120">Normal</option>
-                <option value="150">Yüksek</option>
-            </select>
-            <label>Kolesterol durumunuz nedir?</label>
-            <select name="chol">
-                <option value="200">Normal</option>
-                <option value="260">Yüksek</option>
-            </select>
-            <label>Şekeriniz nasıl?</label>
-            <select name="fbs">
-                <option value="0">Normal</option>
-                <option value="1">Yüksek / Şekerim var</option>
-            </select>
-            <label>Yorulunca göğsünüz ağrıyor mu?</label>
-            <select name="exang">
-                <option value="0">Hayır</option>
-                <option value="1">Evet</option>
-            </select>
             <div class="field">
-                <label>Kalp atış hızınız (Nabız):</label>
-                <input type="range" id="thalach" name="thalach" min="60" max="200" value="80" oninput="updateHR(this)">
-                <div class="value">Atış: <span id="hrVal">80</span></div>
+                <label>Yaşınız ve Cinsiyetiniz</label>
+                <div class="flex-row">
+                    <input type="number" name="age" placeholder="Yaş" required>
+                    <select name="sex">
+                        <option value="1">Erkek</option>
+                        <option value="0">Kadın</option>
+                    </select>
+                </div>
             </div>
+
             <div class="field">
-                <label>Varsa ağrınızın şiddeti: (0-5)</label>
-                <input type="range" id="pain" name="oldpeak" min="0" max="5" step="0.5" value="0" oninput="updatePain(this)">
-                <div class="value">Şiddet: <span id="painVal">0</span></div>
+                <label>Ailenizde kalp hastalığı öyküsü var mı?</label>
+                <select name="genetic">
+                    <option value="0">Hayır, bildiğim kadarıyla yok</option>
+                    <option value="1">Evet, var</option>
+                </select>
             </div>
-            <button type="submit">Analiz Et</button>
+
+            <div class="field">
+                <label>Sigara kullanımı:</label>
+                <select name="smoking">
+                    <option value="0">Hiç kullanmadım</option>
+                    <option value="0.5">Bıraktım / Nadiren kullanıyorum</option>
+                    <option value="1">Evet, düzenli kullanıyorum</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Şeker hastalığınız (Diyabet) var mı?</label>
+                <select name="fbs">
+                    <option value="0">Hayır, yok</option>
+                    <option value="1">Evet, var</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Göğüs ağrısı / Sıkışma hissi:</label>
+                <select name="cp">
+                    <option value="4">Hiç ağrı hissetmiyorum</option>
+                    <option value="3">Hafif bir baskı var</option>
+                    <option value="2">Orta derece rahatsızlık</option>
+                    <option value="1">Şiddetli ağrı hissediyorum</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Tansiyon ve Kolesterol Seviyeniz</label>
+                <div class="flex-row">
+                    <select name="trestbps">
+                        <option value="Dusuk">Düşük Tansiyon</option>
+                        <option value="Orta" selected>Orta (Normal)</option>
+                        <option value="Yuksek">Yüksek Tansiyon</option>
+                    </select>
+                    <select name="chol">
+                        <option value="Dusuk">Düşük Kolesterol</option>
+                        <option value="Orta" selected>Orta (Normal)</option>
+                        <option value="Yuksek">Yüksek Kolesterol</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="range-header">
+                    <label>Efor anındaki kalp atış hızı:</label>
+                    <span id="hrLabel" class="current-value">60</span>
+                </div>
+                <div class="range-wrap">
+                    <input type="range" name="thalach_range" min="60" max="200" value="60" oninput="updateUI(this, 'hr', 'hrLabel')">
+                    <div class="range-labels"><span>60</span><span>200</span></div>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="range-header">
+                    <label>Efor sonrası hissedilen ağrı şiddeti:</label>
+                    <span id="pLabel" class="current-value">0.0</span>
+                </div>
+                <div class="range-wrap">
+                    <input type="range" name="oldpeak" min="0" max="5" step="0.5" value="0" oninput="updateUI(this, 'p', 'pLabel')">
+                    <div class="range-labels"><span>0</span><span>5</span></div>
+                </div>
+            </div>
+
+            <button type="submit">Analizi Başlat</button>
         </form>
+
         {% if risk %}
-            <div class="result">Risk: %{{ risk }}</div>
-            <div class="progress"><div class="progress-bar" style="width: {{ risk }}%;"></div></div>
-            <div class="comments">{% for y in yorumlar %}<p>• {{ y }}</p>{% endfor %}</div>
+            <div class="result" style="font-size: 1.4em; font-weight: 600; text-align: center; margin-top: 25px; color: #fff;">Tahmini Risk: %{{ risk }}</div>
+            <div class="progress" style="background: #333; height: 15px; border-radius: 10px; margin-top: 10px; overflow: hidden;">
+                <div class="progress-bar" style="width: {{ risk }}%; height: 100%; background: linear-gradient(to right, #00ff88, #ffcc00, #ff4d4d); transition: 0.5s;"></div>
+            </div>
+            <div style="font-size: 0.8em; color: #888; text-align: center; margin-top: 15px;">
+                <p>M4 İşlemci Destekli <b>Ensemble Learning</b> Analizi</p>
+                <p>Sistem Doğruluk Oranı: <b>%{{ accuracy }}</b></p>
+            </div>
         {% endif %}
     </div>
 </div>
+
 <script>
-function updateHR(s){
-    let v = s.value; document.getElementById("hrVal").innerText = v;
-    let p = (v-s.min)/(s.max-s.min)*100;
-    let c = v < 100 ? "#00ff88" : v < 145 ? "#ffcc00" : "#ff4d4d";
-    s.style.background = `linear-gradient(to right, ${c} ${p}%, #333 ${p}%)`;
+function updateUI(s, type, labelId) {
+    let val = s.value;
+    document.getElementById(labelId).innerText = val;
+    let v = parseFloat(val);
+    let min = parseFloat(s.min);
+    let max = parseFloat(s.max);
+    let percent = (v - min) / (max - min) * 100;
+    
+    let color = "#00ff88";
+    if(type === 'p') {
+        color = v < 2 ? "#00ff88" : (v < 3.5 ? "#ffcc00" : "#ff4d4d");
+    } else {
+        color = v < 145 ? "#00ff88" : (v < 170 ? "#ffcc00" : "#ff4d4d");
+    }
+    
+    document.getElementById(labelId).style.backgroundColor = color;
+    s.style.background = `linear-gradient(to right, ${color} ${percent}%, #333 ${percent}%)`;
 }
-function updatePain(s){
-    let v = s.value; document.getElementById("painVal").innerText = v;
-    let p = (v-s.min)/(s.max-s.min)*100;
-    let c = v <= 1.5 ? "#00ff88" : v <= 3.5 ? "#ffcc00" : "#ff4d4d";
-    s.style.background = `linear-gradient(to right, ${c} ${p}%, #333 ${p}%)`;
-}
-document.addEventListener("DOMContentLoaded", () => { updateHR(document.getElementById("thalach")); updatePain(document.getElementById("pain")); });
+
+window.onload = function() {
+    document.querySelectorAll('input[type="range"]').forEach(i => {
+        let lId = i.name === 'oldpeak' ? 'pLabel' : 'hrLabel';
+        let type = i.name === 'oldpeak' ? 'p' : 'hr';
+        updateUI(i, type, lId);
+    });
+};
 </script>
 </body>
 </html>
