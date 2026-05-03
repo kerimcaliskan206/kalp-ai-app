@@ -1,179 +1,702 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Kalp Sağlığı</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalp Sağlığı Analizi | AI Karar Destek Sistemi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
 
-<!-- ARKA PLAN -->
-<div class="bg">
-    <div class="grid"></div>
-    <div class="aurora"></div>
-    <div class="vignette"></div>
+<canvas id="networkCanvas"></canvas>
+<canvas id="ekgCanvas"></canvas>
+<div class="ambient-fog"></div>
 
-    <!-- EKG -->
-    <div class="ekg">
-        <div class="ekg-track">
+<div class="scanline"></div>
 
-            <!-- 1. SVG -->
-            <svg class="ekgSvg" viewBox="0 0 500 100">
-                <polyline class="ekg-line"
-                points="0,50 40,50 50,20 60,80 70,50 120,50 150,50 160,20 170,80 180,50 500,50"/>
-            </svg>
+<div class="container">
+    <div class="card">
 
-            <!-- 2. SVG (OFFSET ile kopma yok) -->
-            <svg class="ekgSvg" viewBox="0 0 500 100">
-                <polyline class="ekg-line"
-                points="0,50 0,50 0,50 0,50 40,50 50,20 60,80 70,50 120,50 150,50 160,20 170,80 180,50 500,50"/>
-            </svg>
-
+        <div class="card-header">
+            <div class="header-left">
+                <div class="pulse-ring">
+                    <div class="pulse-core"></div>
+                </div>
+                <div class="header-text">
+                    <h1 class="title">Kalp Sağlığı <span class="accent">Analizi</span></h1>
+                    <p class="subtitle">AI Karar Destek Sistemi <span class="dot">•</span> Ensemble Learning</p>
+                </div>
+            </div>
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                <span class="mono">SİSTEM AKTİF</span>
+            </div>
         </div>
+
+        <div class="divider"></div>
+
+        <form method="POST">
+
+            <div class="section-label mono">01 — KİŞİSEL BİLGİLER</div>
+
+            <div class="field">
+                <label>Yaş ve Cinsiyet</label>
+                <div class="flex-row">
+                    <div class="input-wrap">
+                        <span class="input-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                        </span>
+                        <input type="number" name="age" placeholder="Yaşınız" required>
+                    </div>
+                    <div class="input-wrap">
+                        <span class="input-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg>
+                        </span>
+                        <select name="sex">
+                            <option value="1">Erkek</option>
+                            <option value="0">Kadın</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-label mono">02 — TIBBİ GEÇMİŞ</div>
+
+            <div class="field">
+                <label>Aile Kalp Hastalığı Öyküsü</label>
+                <div class="input-wrap full">
+                    <select name="genetic">
+                        <option value="0">Hayır, bildiğim kadarıyla yok</option>
+                        <option value="1">Evet, var</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Sigara Kullanımı</label>
+                <div class="input-wrap full">
+                    <select name="smoking">
+                        <option value="0">Hiç kullanmadım</option>
+                        <option value="0.5">Bıraktım / Nadiren</option>
+                        <option value="1">Evet, düzenli kullanıyorum</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Şeker Hastalığı (Diyabet)</label>
+                <div class="input-wrap full">
+                    <select name="fbs">
+                        <option value="0">Hayır, yok</option>
+                        <option value="1">Evet, var</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>Göğüs Ağrısı / Sıkışma Hissi</label>
+                <div class="input-wrap full">
+                    <select name="cp">
+                        <option value="4">Hiç ağrı hissetmiyorum</option>
+                        <option value="3">Hafif bir baskı var</option>
+                        <option value="2">Orta derece rahatsızlık</option>
+                        <option value="1">Şiddetli ağrı hissediyorum</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section-label mono">03 — KLİNİK PARAMETRELER</div>
+
+            <div class="field">
+                <label>Tansiyon ve Kolesterol</label>
+                <div class="flex-row">
+                    <div class="input-wrap">
+                        <select name="trestbps">
+                            <option value="Dusuk">Düşük Tansiyon</option>
+                            <option value="Orta" selected>Orta (Normal)</option>
+                            <option value="Yuksek">Yüksek Tansiyon</option>
+                        </select>
+                    </div>
+                    <div class="input-wrap">
+                        <select name="chol">
+                            <option value="Dusuk">Düşük Kolesterol</option>
+                            <option value="Orta" selected>Orta (Normal)</option>
+                            <option value="Yuksek">Yüksek Kolesterol</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field range-field">
+                <div class="range-header">
+                    <label>Efor Anındaki Kalp Atış Hızı</label>
+                    <span id="hrLabel" class="value-badge">60 <span class="unit">bpm</span></span>
+                </div>
+                <div class="range-track-wrap">
+                    <input type="range" name="thalach_range" min="60" max="200" value="60"
+                           oninput="updateUI(this, 'hr', 'hrLabel')">
+                    <div class="range-fill" id="hrFill"></div>
+                </div>
+                <div class="range-labels mono"><span>60 bpm</span><span>200 bpm</span></div>
+            </div>
+
+            <div class="field range-field">
+                <div class="range-header">
+                    <label>Efor Sonrası Ağrı Şiddeti</label>
+                    <span id="pLabel" class="value-badge">0.0 <span class="unit">/ 5</span></span>
+                </div>
+                <div class="range-track-wrap">
+                    <input type="range" name="oldpeak" min="0" max="5" step="0.5" value="0"
+                           oninput="updateUI(this, 'p', 'pLabel')">
+                    <div class="range-fill" id="pFill"></div>
+                </div>
+                <div class="range-labels mono"><span>0 — Yok</span><span>5 — Şiddetli</span></div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <span class="btn-text">Analizi Başlat</span>
+                <span class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+                </span>
+            </button>
+
+        </form>
+
+        {% if risk %}
+        <div class="result-block">
+            <div class="result-header">
+                <span class="mono result-label">ANALİZ SONUCU</span>
+                <span class="mono accuracy-tag">Doğruluk: %{{ accuracy }}</span>
+            </div>
+            <div class="risk-display">
+                <div class="risk-number">%{{ risk }}</div>
+                <div class="risk-label">Tahmini Kardiyovasküler Risk</div>
+            </div>
+            <div class="progress-wrap">
+                <div class="progress-track">
+                    <div class="progress-bar" style="width: {{ risk }}%;"></div>
+                    <div class="progress-markers">
+                        <span style="left:33%"></span>
+                        <span style="left:66%"></span>
+                    </div>
+                </div>
+                <div class="progress-legend mono">
+                    <span style="color:#00e676">Düşük</span>
+                    <span style="color:#ffca28">Orta</span>
+                    <span style="color:#ff1744">Yüksek</span>
+                </div>
+            </div>
+            <div class="result-footer mono">
+                M4 İşlemci Destekli Ensemble Learning Analizi
+            </div>
+        </div>
+
+        <!-- AI CHAT PANELİ -->
+        <div class="ai-panel">
+            <div class="ai-panel-header">
+                <div class="ai-header-left">
+                    <div class="ai-avatar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+                    </div>
+                    <div>
+                        <div class="ai-name">Kalp Sağlığı Asistanı</div>
+                        <div class="ai-status-row"><span class="ai-dot"></span><span class="mono ai-status-text">Sonucunuzu analiz ediyor...</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-messages" id="aiMessages">
+                <div class="ai-msg ai-msg--bot" id="typingIndicator">
+                    <div class="typing-dots"><span></span><span></span><span></span></div>
+                </div>
+            </div>
+
+            <div class="ai-input-row">
+                <input type="text" id="aiInput" class="ai-input" placeholder="Soru sorun... (örn: ne yapmalıyım?)" disabled>
+                <button class="ai-send" id="aiSend" onclick="sendMessage()" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Hasta verileri JS için -->
+        <script>
+        var PATIENT = {
+            risk:    {{ risk }},
+            age:     {{ age }},
+            sex:     {{ sex }},
+            genetic: {{ genetic }},
+            smoking: {{ smoking }},
+            fbs:     {{ fbs }},
+            cp:      {{ cp }},
+            trestbps: {{ trestbps }},
+            chol:    {{ chol }},
+            thalach: {{ thalach }},
+            oldpeak: {{ oldpeak }},
+            accuracy: {{ accuracy }}
+        };
+        </script>
+        {% endif %}
+
     </div>
 </div>
 
-<!-- CONTENT -->
-<div class="container">
-<div class="card">
-
-<h1 class="title">
-Kalp Sağlığı Analizi <span class="heart">❤️</span>
-</h1>
-
-<p>Riskinizi öğrenin</p>
-
-<form method="POST">
-
-<input type="number" name="age" placeholder="Yaş" required>
-
-<select name="sex">
-<option value="0">Kadın</option>
-<option value="1">Erkek</option>
-</select>
-
-<select name="cp">
-<option value="1">Şiddetli göğüs ağrısı</option>
-<option value="2">Orta</option>
-<option value="3">Hafif</option>
-<option value="4">Yok</option>
-</select>
-
-<select name="trestbps">
-<option value="120">Normal</option>
-<option value="150">Yüksek</option>
-</select>
-
-<select name="chol">
-<option value="200">Normal</option>
-<option value="260">Yüksek</option>
-</select>
-
-<select name="exang">
-<option value="0">Yok</option>
-<option value="1">Var</option>
-</select>
-
-<!-- SLIDER 1 -->
-<div class="field">
-<label>Kalp atış hızı</label>
-
-<input type="range"
-id="thalach"
-name="thalach"
-min="60"
-max="200"
-value="120"
-oninput="updateHR(this); updateEKG(this.value)">
-
-<div class="value">
-Değer: <span id="hrVal">120</span>
-</div>
+<div class="watermark">
+    <span class="watermark-dot"></span>
+    <span class="watermark-text">kerim çalışkan</span>
 </div>
 
-<!-- SLIDER 2 -->
-<div class="field">
-<label>Ağrı seviyesi</label>
-
-<input type="range"
-id="pain"
-name="oldpeak"
-min="1"
-max="5"
-value="2"
-oninput="updatePain(this)">
-
-<div class="value">
-Seviye: <span id="painVal">2</span>
-</div>
-</div>
-
-<button type="submit">Tahmin Et</button>
-
-</form>
-
-{% if risk %}
-<div class="result">Risk: %{{ risk }}</div>
-<div class="progress">
-<div class="progress-bar" style="width: {{ risk }}%;"></div>
-</div>
-{% endif %}
-
-</div>
-</div>
-
-<!-- JS -->
 <script>
+/* ══════════════════════════════════
+   KATMAN 1 — Yüzen Kalp Noktaları
+══════════════════════════════════ */
+(function () {
+    const canvas = document.getElementById('networkCanvas');
+    const ctx    = canvas.getContext('2d');
+    let W = 0, H = 0, hearts = [], t = 0;
 
-function updateHR(slider){
-let v = slider.value;
-document.getElementById("hrVal").innerText = v;
+    function hx(a) { return 16 * Math.pow(Math.sin(a), 3); }
+    function hy(a) { return -(13*Math.cos(a) - 5*Math.cos(2*a) - 2*Math.cos(3*a) - Math.cos(4*a)); }
 
-let percent = (v - slider.min) / (slider.max - slider.min) * 100;
-let color = v < 100 ? "#00ff88" : v < 140 ? "#ffcc00" : "#ff4d4d";
+    const TPL = Array.from({ length: 28 }, function(_, i) {
+        var a = (i / 28) * Math.PI * 2;
+        return { lx: hx(a), ly: hy(a) };
+    });
 
-slider.style.background = `linear-gradient(to right,${color} 0%,${color} ${percent}%,#333 ${percent}%,#333 100%)`;
+    function makeHeart(fx, fy) {
+        var depth = 0.2 + Math.random() * 0.8;
+        var speed = 0.10 + Math.random() * 0.20;
+        return {
+            x: fx !== undefined ? fx : Math.random() * W,
+            y: fy !== undefined ? fy : Math.random() * H,
+            vx: (Math.random() - 0.5) * speed,
+            vy: -(0.07 + Math.random() * 0.16),
+            rot: Math.random() * Math.PI * 2,
+            rotV: (Math.random() - 0.5) * 0.007,
+            size: 9 + Math.random() * 17,
+            depth: depth,
+            alpha: 0.10 + depth * 0.22,
+            breathe: Math.random() * Math.PI * 2,
+            breatheS: 0.014 + Math.random() * 0.01,
+            wobble: Math.random() * Math.PI * 2,
+            wobbleS: 0.018 + Math.random() * 0.014
+        };
+    }
+
+    function setSize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+
+    function init() {
+        setSize();
+        hearts = Array.from({ length: 7 }, function() {
+            return makeHeart(Math.random() * W, Math.random() * H);
+        });
+    }
+
+    function onResize() {
+        setSize();
+        hearts.forEach(function(h) {
+            h.x = Math.random() * W;
+            h.y = Math.random() * H;
+        });
+    }
+
+    function drawHeart(h) {
+        var br    = 1 + Math.sin(t * h.breatheS + h.breathe) * 0.06;
+        var scale = (h.size / 17) * br;
+        var cosR  = Math.cos(h.rot), sinR = Math.sin(h.rot);
+
+        for (var i = 0; i < TPL.length; i++) {
+            var j   = (i + 1) % TPL.length;
+            var pi  = TPL[i], pj = TPL[j];
+            var rix = pi.lx * cosR - pi.ly * sinR;
+            var riy = pi.lx * sinR + pi.ly * cosR;
+            var rjx = pj.lx * cosR - pj.ly * sinR;
+            var rjy = pj.lx * sinR + pj.ly * cosR;
+            ctx.beginPath();
+            ctx.moveTo(h.x + rix * scale, h.y + riy * scale);
+            ctx.lineTo(h.x + rjx * scale, h.y + rjy * scale);
+            ctx.strokeStyle = 'rgba(200,18,45,' + (h.alpha * 0.32) + ')';
+            ctx.lineWidth   = 0.4;
+            ctx.stroke();
+        }
+
+        TPL.forEach(function(p, i) {
+            var rx    = p.lx * cosR - p.ly * sinR;
+            var ry    = p.lx * sinR + p.ly * cosR;
+            var sx    = h.x + rx * scale;
+            var sy    = h.y + ry * scale;
+            var pulse = 0.5 + 0.5 * Math.sin(t * 0.04 + i * 0.4 + h.breathe);
+            var r     = (0.8 + h.depth * 1.4) * (0.85 + 0.2 * pulse);
+            var a     = h.alpha * (0.6 + 0.4 * pulse);
+            if (h.depth > 0.6 && pulse > 0.7) {
+                ctx.beginPath();
+                ctx.arc(sx, sy, r * 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(220,20,50,' + (a * 0.16) + ')';
+                ctx.fill();
+            }
+            ctx.beginPath();
+            ctx.arc(sx, sy, r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(225,28,55,' + a + ')';
+            ctx.fill();
+        });
+    }
+
+    function update() {
+        hearts.forEach(function(h) {
+            h.x   += h.vx + Math.sin(t * h.wobbleS + h.wobble) * 0.28;
+            h.y   += h.vy;
+            h.rot += h.rotV;
+            if (h.y < -h.size * 3) { h.y = H + h.size * 3; h.x = Math.random() * W; }
+            if (h.x < -h.size * 4) h.x = W + h.size * 4;
+            if (h.x >  W + h.size * 4) h.x = -h.size * 4;
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        t++;
+        update();
+        hearts.forEach(drawHeart);
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', onResize);
+    init();
+    draw();
+})();
+
+/* ══════════════════════════════════
+   KATMAN 2 — Dinamik EKG (aritmik)
+══════════════════════════════════ */
+(function () {
+    var canvas = document.getElementById('ekgCanvas');
+    var ctx    = canvas.getContext('2d');
+    var W = 0, H = 0;
+
+    function setSize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+    setSize();
+    window.addEventListener('resize', setSize);
+
+    function makeBeat(rAmp, tAmp, period, pAmp) {
+        var P = period;
+        return [
+            [0,        0       ], [P*.04,    0       ],
+            [P*.07,    pAmp*.04], [P*.11,    pAmp*.20],
+            [P*.14,    pAmp*.04], [P*.17,    0       ],
+            [P*.21,    0       ], [P*.225,  -0.14    ],
+            [P*.245,   0       ], [P*.258,   rAmp    ],
+            [P*.272,   0       ], [P*.285,  -0.28    ],
+            [P*.30,    0       ], [P*.35,    0.022   ],
+            [P*.40,    tAmp*.18], [P*.46,    tAmp*.42],
+            [P*.53,    tAmp*.18], [P*.58,    0       ],
+            [P*.70,    0       ], [P*.85,    0       ],
+            [P*1.0,    0       ]
+        ];
+    }
+
+    function randomBeat() {
+        var bpm    = 62 + Math.random() * 22;
+        var period = (60 / bpm) * 480;
+        return {
+            pts:    makeBeat(0.82 + Math.random()*0.36, 0.55 + Math.random()*0.35, period, 0.6 + Math.random()*0.8),
+            period: period,
+            bpm:    Math.round(bpm)
+        };
+    }
+
+    function sampleBeat(beat, x) {
+        var pts = beat.pts;
+        var t   = ((x % beat.period) + beat.period) % beat.period;
+        for (var i = 0; i < pts.length - 1; i++) {
+            if (t >= pts[i][0] && t < pts[i+1][0]) {
+                var f = (t - pts[i][0]) / (pts[i+1][0] - pts[i][0]);
+                return pts[i][1] + (pts[i+1][1] - pts[i][1]) * f;
+            }
+        }
+        return 0;
+    }
+
+    var BUF    = 8192;
+    var MASK   = BUF - 1;
+    var SPEED  = 2;
+    var TRAIL  = 220;
+    var signal = new Float32Array(BUF);
+    var wH = 0, beatPos = 0, curBeat = null, wander = 0;
+
+    function fillBuf(n) {
+        for (var i = 0; i < n; i++) {
+            if (!curBeat || beatPos >= curBeat.period) {
+                curBeat = randomBeat();
+                beatPos = 0;
+            }
+            wander += 0.0012;
+            signal[wH & MASK] = sampleBeat(curBeat, beatPos)
+                               + Math.sin(wander) * 0.018
+                               + (Math.random() - 0.5) * 0.008;
+            wH++;
+            beatPos += SPEED;
+        }
+    }
+
+    fillBuf(BUF);
+
+    function getReadHead() {
+        return ((wH - W - TRAIL) % BUF + BUF) % BUF;
+    }
+
+    function draw() {
+        fillBuf(SPEED);
+        ctx.clearRect(0, 0, W, H);
+
+        var baseY = H * 0.82;
+        var amp   = H * 0.14;
+        var rh    = getReadHead();
+
+        ctx.strokeStyle = 'rgba(200,15,40,0.04)';
+        ctx.lineWidth   = 0.5;
+        for (var x = 0; x < W; x += 50) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+        }
+        for (var yg = 0; yg < H; yg += 22) {
+            ctx.beginPath(); ctx.moveTo(0, yg); ctx.lineTo(W, yg); ctx.stroke();
+        }
+
+        ctx.beginPath();
+        for (var x = 0; x < W; x++) {
+            var y = baseY - signal[(rh + x) & MASK] * amp;
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = 'rgba(200,20,45,0.07)';
+        ctx.lineWidth = 9; ctx.lineJoin = 'round'; ctx.stroke();
+
+        ctx.beginPath();
+        for (var x = 0; x < W; x++) {
+            var y = baseY - signal[(rh + x) & MASK] * amp;
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = 'rgba(210,25,55,0.30)';
+        ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+
+        var hxPos = W - 80;
+        ctx.save();
+        ctx.beginPath();
+        var started = false;
+        for (var dx = TRAIL; dx >= 0; dx--) {
+            var x = hxPos - dx;
+            if (x < 0) continue;
+            var y = baseY - signal[(rh + x) & MASK] * amp;
+            if (!started) { ctx.moveTo(x, y); started = true; }
+            else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = 'rgba(255,50,75,0.88)';
+        ctx.lineWidth = 1.8; ctx.lineJoin = 'round'; ctx.stroke();
+        ctx.restore();
+
+        var hyPos = baseY - signal[(rh + hxPos) & MASK] * amp;
+        ctx.beginPath(); ctx.arc(hxPos, hyPos, 10,  0, Math.PI*2); ctx.fillStyle='rgba(255,40,60,0.12)'; ctx.fill();
+        ctx.beginPath(); ctx.arc(hxPos, hyPos, 5,   0, Math.PI*2); ctx.fillStyle='rgba(255,55,72,0.40)'; ctx.fill();
+        ctx.beginPath(); ctx.arc(hxPos, hyPos, 2.5, 0, Math.PI*2); ctx.fillStyle='rgba(255,80,88,1)';    ctx.fill();
+
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+/* ══════════════════════════════════
+   Range UI — anında, lag yok
+══════════════════════════════════ */
+function updateUI(slider, type, labelId) {
+    var val   = parseFloat(slider.value);
+    var pct   = (val - parseFloat(slider.min)) / (parseFloat(slider.max) - parseFloat(slider.min)) * 100;
+    var color = type === 'p'
+        ? (val < 2 ? '#00e676' : val < 3.5 ? '#ffca28' : '#ff1744')
+        : (val < 145 ? '#00e676' : val < 170 ? '#ffca28' : '#ff1744');
+
+    var badge = document.getElementById(labelId);
+
+    /* Renk anında uygula */
+    badge.style.background   = color + '22';
+    badge.style.borderColor  = color;
+    badge.style.color        = color;
+
+    /* Değer metni — innerHTML yerine textContent ile unit span ayrı */
+    if (!badge._unitSpan) {
+        badge._unitSpan = document.createElement('span');
+        badge._unitSpan.className = 'unit';
+        badge.appendChild(badge._unitSpan);
+    }
+    var mainText = type === 'p' ? val.toFixed(1) : String(Math.round(val));
+    var unitText = type === 'p' ? ' / 5' : ' bpm';
+    /* Sadece değişince yaz — gereksiz reflow yok */
+    if (badge.firstChild && badge.firstChild.nodeType === 3) {
+        badge.firstChild.nodeValue = mainText;
+    } else {
+        badge.insertBefore(document.createTextNode(mainText), badge._unitSpan);
+    }
+    badge._unitSpan.textContent = unitText;
+
+    /* Slider dolgu */
+    slider.style.background = 'linear-gradient(to right,' + color + ' ' + pct + '%,rgba(255,255,255,0.08) ' + pct + '%)';
 }
 
-function updatePain(slider){
-let v = slider.value;
-document.getElementById("painVal").innerText = v;
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[type="range"]').forEach(function(i) {
+        var type = i.name === 'oldpeak' ? 'p' : 'hr';
+        var lId  = i.name === 'oldpeak' ? 'pLabel' : 'hrLabel';
+        updateUI(i, type, lId);
+    });
 
-let percent = (v - slider.min) / (slider.max - slider.min) * 100;
-let color = v <= 2 ? "#00ff88" : v == 3 ? "#ffcc00" : "#ff4d4d";
-
-slider.style.background = `linear-gradient(to right,${color} 0%,${color} ${percent}%,#333 ${percent}%,#333 100%)`;
-}
-
-function updateEKG(val){
-const track = document.querySelector(".ekg-track");
-const svgs = document.querySelectorAll(".ekgSvg");
-
-let speed = val > 170 ? 1.2 : val > 140 ? 1.8 : val > 110 ? 2.5 : 3.5;
-track.style.animationDuration = speed + "s";
-
-let wave =
-val > 170 ? "0,50 30,50 40,25 50,75 60,50 80,50 100,50 110,25 120,75 130,50 150,50 160,25 170,75 180,50 500,50" :
-val > 140 ? "0,50 40,50 50,20 60,80 70,50 110,50 140,50 150,20 160,80 170,50 500,50" :
-"0,50 50,50 60,30 70,70 80,50 150,50 200,50 210,30 220,70 230,50 500,50";
-
-svgs.forEach(svg => {
-svg.querySelector("polyline").setAttribute("points", wave);
+    // AI paneli varsa otomatik başlat
+    if (typeof PATIENT !== 'undefined') {
+        startAIAnalysis();
+    }
 });
+
+/* ══════════════════════════════════
+   AI CHAT — Claude API
+══════════════════════════════════ */
+var chatHistory = [];
+
+function buildSystemPrompt() {
+    var sexText     = PATIENT.sex === 1 ? 'Erkek' : 'Kadın';
+    var geneticText = PATIENT.genetic === 1 ? 'var' : 'yok';
+    var smokingText = PATIENT.smoking == 0 ? 'hiç kullanmadım' : PATIENT.smoking == 0.5 ? 'bıraktım/nadiren' : 'düzenli kullanıyorum';
+    var fbsText     = PATIENT.fbs === 1 ? 'var' : 'yok';
+    var cpMap       = {4:'hiç ağrı yok', 3:'hafif baskı', 2:'orta derece', 1:'şiddetli ağrı'};
+    var cpText      = cpMap[PATIENT.cp] || 'bilinmiyor';
+    var tText       = PATIENT.trestbps <= 120 ? 'düşük' : PATIENT.trestbps <= 140 ? 'normal' : 'yüksek';
+    var cText       = PATIENT.chol <= 200 ? 'düşük' : PATIENT.chol <= 240 ? 'normal' : 'yüksek';
+    var riskLevel   = PATIENT.risk < 33 ? 'DÜŞÜK' : PATIENT.risk < 66 ? 'ORTA' : 'YÜKSEK';
+
+    return 'Sen bir kardiyovasküler sağlık asistanısın. Aşağıdaki hasta verileri bir ensemble makine öğrenmesi modeli (%' + PATIENT.accuracy + ' doğruluk) tarafından analiz edildi.\n\n' +
+        'HASTA PROFİLİ:\n' +
+        '- Yaş: ' + PATIENT.age + ', Cinsiyet: ' + sexText + '\n' +
+        '- Aile kalp hastalığı öyküsü: ' + geneticText + '\n' +
+        '- Sigara: ' + smokingText + '\n' +
+        '- Diyabet: ' + fbsText + '\n' +
+        '- Göğüs ağrısı: ' + cpText + '\n' +
+        '- Tansiyon seviyesi: ' + tText + ' (' + PATIENT.trestbps + ' mmHg)\n' +
+        '- Kolesterol seviyesi: ' + cText + ' (' + PATIENT.chol + ' mg/dL)\n' +
+        '- Maks. kalp atış hızı: ' + PATIENT.thalach + ' bpm\n' +
+        '- Efor sonrası ağrı: ' + PATIENT.oldpeak + '/5\n\n' +
+        'SONUÇ: Kardiyovasküler risk skoru %' + PATIENT.risk + ' → ' + riskLevel + ' risk\n\n' +
+        'KURALLAR:\n' +
+        '- Türkçe, sade, anlaşılır bir dille yanıt ver\n' +
+        '- Kesinlikle teşhis koyma, "doktora gidin" uyarısını doğal şekilde ekle\n' +
+        '- Madde madde, kısa ve net yaz\n' +
+        '- Korku değil, bilinçlendirme tonu kullan\n' +
+        '- Emoji kullanma\n' +
+'- Sadece kardiyovasküler sağlık ve kalp hastalıklarıyla ilgili sorulara cevap ver\n' +
+'- Konu dışı sorularda kibarca "Sadece kalp sağlığı konularında yardımcı olabilirim." de';
 }
 
-/* 🔥 GARANTİ BAŞLATMA */
-document.addEventListener("DOMContentLoaded", function(){
-const hr = document.getElementById("thalach");
-const pain = document.getElementById("pain");
+function buildInitialPrompt() {
+    var riskLevel = PATIENT.risk < 33 ? 'düşük' : PATIENT.risk < 66 ? 'orta' : 'yüksek';
+    return 'Benim risk skorumu (%' + PATIENT.risk + ', ' + riskLevel + ' risk) kısa ve net bir şekilde açıkla. ' +
+           'Hangi faktörler bu skoru etkiliyor, ne yapabilirim? Maksimum 4-5 madde.';
+}
 
-updateHR(hr);
-updatePain(pain);
-updateEKG(hr.value);
+function addMessage(text, isUser) {
+    var messages = document.getElementById('aiMessages');
+    var div = document.createElement('div');
+    div.className = 'ai-msg ' + (isUser ? 'ai-msg--user' : 'ai-msg--bot');
+    div.textContent = text;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+}
+
+function showTyping() {
+    var el = document.getElementById('typingIndicator');
+    if (el) el.style.display = 'flex';
+}
+
+function hideTyping() {
+    var el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+}
+
+async function callClaude(userMessage) {
+    chatHistory.push({ role: 'user', content: userMessage });
+
+    var response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            system: buildSystemPrompt(),
+            messages: chatHistory
+        })
+    });
+
+    if (!response.ok) throw new Error('API hatası: ' + response.status);
+    var data = await response.json();
+    var reply = data.content[0].text;
+    chatHistory.push({ role: 'assistant', content: reply });
+    return reply;
+}
+
+async function startAIAnalysis() {
+    showTyping();
+    try {
+        var reply = await callClaude(buildInitialPrompt());
+        hideTyping();
+        addMessage(reply, false);
+        document.getElementById('aiInput').disabled  = false;
+        document.getElementById('aiSend').disabled   = false;
+        document.getElementById('aiInput').focus();
+        var statusEl = document.querySelector('.ai-status-text');
+        if (statusEl) statusEl.textContent = 'Hazır — soru sorabilirsiniz';
+    } catch(e) {
+        hideTyping();
+        addMessage('Asistan şu an bağlanamadı. Lütfen API key\'i kontrol edin.', false);
+    }
+}
+
+async function sendMessage() {
+    var input = document.getElementById('aiInput');
+    var text  = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    input.disabled = true;
+    document.getElementById('aiSend').disabled = true;
+
+    addMessage(text, true);
+
+    var typing = document.createElement('div');
+    typing.className = 'ai-msg ai-msg--bot';
+    typing.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    document.getElementById('aiMessages').appendChild(typing);
+    document.getElementById('aiMessages').scrollTop = 99999;
+
+    try {
+        var reply = await callClaude(text);
+        typing.remove();
+        addMessage(reply, false);
+    } catch(e) {
+        typing.remove();
+        addMessage('Bir hata oluştu, tekrar deneyin.', false);
+    }
+
+    input.disabled = false;
+    document.getElementById('aiSend').disabled = false;
+    input.focus();
+}
+
+// Enter tuşu desteği
+document.addEventListener('keydown', function(e) {
+    var input = document.getElementById('aiInput');
+    if (input && e.key === 'Enter' && document.activeElement === input) {
+        sendMessage();
+    }
 });
-
 </script>
-
 </body>
 </html>
