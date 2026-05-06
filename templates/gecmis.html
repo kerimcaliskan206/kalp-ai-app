@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geçmiş Analizler | Kalp Sağlığı</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .gecmis-card { max-width: 620px; }
+        .gecmis-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .gecmis-title { font-size:1.1rem; font-weight:600; }
+        .back-btn { font-size:0.78rem; color:var(--red); text-decoration:none; font-family:var(--mono); border:1px solid rgba(220,20,60,0.3); padding:5px 12px; border-radius:6px; }
+        .analiz-item { background:rgba(255,255,255,0.03); border:1px solid var(--border-soft); border-radius:10px; padding:16px; margin-bottom:12px; display:flex; align-items:center; gap:16px; }
+        .analiz-risk { font-family:var(--mono); font-size:1.6rem; font-weight:700; min-width:70px; text-align:center; }
+        .analiz-info { flex:1; }
+        .analiz-tarih { font-size:0.7rem; color:var(--text-muted); font-family:var(--mono); margin-bottom:4px; }
+        .analiz-detay { font-size:0.8rem; color:var(--text-muted); }
+        .bos-mesaj { text-align:center; color:var(--text-muted); font-size:0.85rem; padding:40px 0; }
+        .user-info { font-size:0.75rem; color:var(--text-muted); margin-bottom:4px; }
+    </style>
+</head>
+<body>
+<canvas id="networkCanvas"></canvas>
+<canvas id="ekgCanvas"></canvas>
+<div class="ambient-fog"></div>
+<div class="scanline"></div>
+
+<div class="container">
+    <div class="card gecmis-card">
+        <div class="card-header">
+            <div class="header-left">
+                <div class="pulse-ring"><div class="pulse-core"></div></div>
+                <div class="header-text">
+                    <h1 class="title">Geçmiş <span class="accent">Analizler</span></h1>
+                    <p class="subtitle">{{ user.email }}</p>
+                </div>
+            </div>
+            <a href="/" class="back-btn">← Yeni Analiz</a>
+        </div>
+        <div class="divider"></div>
+
+        {% if analizler %}
+            {% for a in analizler %}
+            <div class="analiz-item">
+                <div class="analiz-risk" style="color:{% if a.risk < 33 %}#00e676{% elif a.risk < 66 %}#ffca28{% else %}#ff1744{% endif %}">
+                    %{{ a.risk }}
+                </div>
+                <div class="analiz-info">
+                    <div class="analiz-tarih mono">
+                        {{ a.tarih.strftime('%d.%m.%Y %H:%M') if a.tarih else '—' }}
+                    </div>
+                    <div class="analiz-detay">
+                        {{ a.age }} yaş •
+                        {% if a.sex == 1 %}Erkek{% else %}Kadın{% endif %} •
+                        {% if a.smoking == 1 %}Sigara kullanıyor{% elif a.smoking == 0.5 %}Nadiren sigara{% else %}Sigara yok{% endif %} •
+                        {% if a.fbs == 1 %}Diyabetik{% else %}Diyabet yok{% endif %}
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="mono" style="font-size:0.65rem;color:var(--text-muted);">Doğruluk</div>
+                    <div class="mono" style="font-size:0.85rem;color:var(--green);">%{{ a.accuracy }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="bos-mesaj">
+                Henüz analiz yapılmamış.<br>
+                <a href="/" style="color:var(--red);">İlk analizini yap →</a>
+            </div>
+        {% endif %}
+
+        <div class="watermark">
+            <span class="watermark-dot"></span>
+            <span class="watermark-text">kerim çalışkan</span>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='bg.js') }}"></script>
+</body>
+</html>

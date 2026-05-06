@@ -33,6 +33,15 @@
                 <span class="mono">SİSTEM AKTİF</span>
             </div>
         </div>
+        {% if user %}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <span style="font-size:0.72rem;color:var(--text-muted);font-family:var(--mono);">{{ user.email }}</span>
+            <div style="display:flex;gap:8px;">
+                <a href="/gecmis" style="font-size:0.7rem;color:var(--text-muted);font-family:var(--mono);border:1px solid var(--border-soft);padding:4px 10px;border-radius:6px;text-decoration:none;">Geçmiş</a>
+                <a href="/logout" style="font-size:0.7rem;color:var(--red);font-family:var(--mono);border:1px solid rgba(220,20,60,0.3);padding:4px 10px;border-radius:6px;text-decoration:none;">Çıkış</a>
+            </div>
+        </div>
+        {% endif %}
 
         <div class="divider"></div>
 
@@ -365,8 +374,17 @@
     }
 
     window.addEventListener('resize', onResize);
-    init();
-    draw();
+
+    // Sayfa tam yüklenince init çalıştır — doğru genişlik garantili
+    function start() {
+        init();
+        draw();
+    }
+    if (document.readyState === 'complete') {
+        start();
+    } else {
+        window.addEventListener('load', start);
+    }
 })();
 
 /* ══════════════════════════════════
@@ -592,9 +610,7 @@ function buildSystemPrompt() {
         '- Kesinlikle teşhis koyma, "doktora gidin" uyarısını doğal şekilde ekle\n' +
         '- Madde madde, kısa ve net yaz\n' +
         '- Korku değil, bilinçlendirme tonu kullan\n' +
-        '- Emoji kullanma\n' +
-'- Sadece kardiyovasküler sağlık ve kalp hastalıklarıyla ilgili sorulara cevap ver\n' +
-'- Konu dışı sorularda kibarca "Sadece kalp sağlığı konularında yardımcı olabilirim." de';
+        '- Emoji kullanma';
 }
 
 function buildInitialPrompt() {

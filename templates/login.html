@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş | Kalp Sağlığı Analizi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .auth-card { max-width: 420px; }
+        .auth-tabs { display: flex; gap: 0; margin-bottom: 28px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+        .auth-tab { flex: 1; padding: 10px; text-align: center; font-size: 0.85rem; font-weight: 500; cursor: pointer; background: transparent; border: none; color: var(--text-muted); transition: all 0.2s; font-family: var(--font); }
+        .auth-tab.active { background: var(--red-dim); color: var(--text); border-bottom: 2px solid var(--red); }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        .auth-input-wrap { margin-bottom: 16px; }
+        .auth-input-wrap label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 7px; }
+        .auth-btn { width: 100%; padding: 13px; border: 1.5px solid var(--red); border-radius: 8px; background: var(--red-dim); color: #fff; font-family: var(--font); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+        .auth-btn:hover { background: rgba(220,20,60,0.3); transform: translateY(-1px); }
+        .auth-error { background: rgba(255,23,68,0.1); border: 1px solid rgba(255,23,68,0.3); border-radius: 8px; padding: 10px 14px; font-size: 0.8rem; color: #ff6b6b; margin-top: 12px; display: none; }
+        .auth-divider { text-align: center; font-size: 0.72rem; color: var(--text-muted); margin: 6px 0 4px; }
+    </style>
+</head>
+<body>
+<canvas id="networkCanvas"></canvas>
+<canvas id="ekgCanvas"></canvas>
+<div class="ambient-fog"></div>
+<div class="scanline"></div>
+
+<div class="container">
+    <div class="card auth-card">
+        <div class="card-header">
+            <div class="header-left">
+                <div class="pulse-ring"><div class="pulse-core"></div></div>
+                <div class="header-text">
+                    <h1 class="title">Kalp Sağlığı <span class="accent">Analizi</span></h1>
+                    <p class="subtitle">AI Karar Destek Sistemi</p>
+                </div>
+            </div>
+        </div>
+        <div class="divider"></div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchTab('giris')">Giriş Yap</button>
+            <button class="auth-tab" onclick="switchTab('kayit')">Kayıt Ol</button>
+        </div>
+
+        <!-- GİRİŞ -->
+        <div class="auth-form active" id="girisForm">
+            <div class="auth-input-wrap">
+                <label>E-posta</label>
+                <div class="input-wrap full">
+                    <input type="email" id="girisEmail" placeholder="ornek@email.com">
+                </div>
+            </div>
+            <div class="auth-input-wrap">
+                <label>Şifre</label>
+                <div class="input-wrap full">
+                    <input type="password" id="girisPassword" placeholder="••••••••">
+                </div>
+            </div>
+            <button class="auth-btn" onclick="girisYap()">Giriş Yap</button>
+            <div class="auth-error" id="girisError"></div>
+        </div>
+
+        <!-- KAYIT -->
+        <div class="auth-form" id="kayitForm">
+            <div class="auth-input-wrap">
+                <label>Ad Soyad</label>
+                <div class="input-wrap full">
+                    <input type="text" id="kayitAd" placeholder="Adınız Soyadınız">
+                </div>
+            </div>
+            <div class="auth-input-wrap">
+                <label>E-posta</label>
+                <div class="input-wrap full">
+                    <input type="email" id="kayitEmail" placeholder="ornek@email.com">
+                </div>
+            </div>
+            <div class="auth-input-wrap">
+                <label>Şifre</label>
+                <div class="input-wrap full">
+                    <input type="password" id="kayitPassword" placeholder="En az 6 karakter">
+                </div>
+            </div>
+            <button class="auth-btn" onclick="kayitOl()">Kayıt Ol</button>
+            <div class="auth-error" id="kayitError"></div>
+        </div>
+
+        <div class="auth-divider" style="margin-top:18px;">
+            <span class="mono" style="font-size:0.65rem;opacity:0.4;">● kerim çalışkan</span>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey:            "AIzaSyC8SZKRBMg81SRyjIZuqijDeM2GBRkcQHA",
+    authDomain:        "kalp-ai-5342d.firebaseapp.com",
+    projectId:         "kalp-ai-5342d",
+    storageBucket:     "kalp-ai-5342d.firebasestorage.app",
+    messagingSenderId: "1064347239828",
+    appId:             "1:1064347239828:web:be195b2ed19d310e857b81"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const authInst   = getAuth(firebaseApp);
+
+async function sendTokenToServer(user) {
+    const token = await user.getIdToken();
+    const resp  = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "idToken=" + encodeURIComponent(token)
+    });
+    const data = await resp.json();
+    if (data.success) window.location.href = "/";
+    else showError("girisError", "Sunucu hatası: " + data.error);
+}
+
+window.girisYap = async function() {
+    const email    = document.getElementById("girisEmail").value.trim();
+    const password = document.getElementById("girisPassword").value;
+    try {
+        const cred = await signInWithEmailAndPassword(authInst, email, password);
+        await sendTokenToServer(cred.user);
+    } catch(e) {
+        showError("girisError", turkceHata(e.code));
+    }
+};
+
+window.kayitOl = async function() {
+    const ad       = document.getElementById("kayitAd").value.trim();
+    const email    = document.getElementById("kayitEmail").value.trim();
+    const password = document.getElementById("kayitPassword").value;
+    try {
+        const cred = await createUserWithEmailAndPassword(authInst, email, password);
+        if (ad) await updateProfile(cred.user, { displayName: ad });
+        await sendTokenToServer(cred.user);
+    } catch(e) {
+        showError("kayitError", turkceHata(e.code));
+    }
+};
+
+function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = "block";
+}
+
+function turkceHata(code) {
+    const map = {
+        "auth/user-not-found":      "Bu e-posta ile kayıtlı kullanıcı bulunamadı.",
+        "auth/wrong-password":      "Şifre yanlış.",
+        "auth/email-already-in-use":"Bu e-posta zaten kayıtlı.",
+        "auth/weak-password":       "Şifre en az 6 karakter olmalı.",
+        "auth/invalid-email":       "Geçersiz e-posta adresi.",
+        "auth/invalid-credential":  "E-posta veya şifre hatalı.",
+    };
+    return map[code] || "Bir hata oluştu: " + code;
+}
+</script>
+
+<script>
+function switchTab(tab) {
+    document.querySelectorAll(".auth-tab").forEach(function(t){ t.classList.remove("active"); });
+    document.querySelectorAll(".auth-form").forEach(function(f){ f.classList.remove("active"); });
+    document.getElementById(tab + "Form").classList.add("active");
+    event.target.classList.add("active");
+}
+
+// Enter tuşu
+document.addEventListener("keydown", function(e) {
+    if (e.key !== "Enter") return;
+    if (document.getElementById("girisForm").classList.contains("active")) girisYap();
+    else kayitOl();
+});
+</script>
+
+<!-- Arka plan animasyonları (ana sayfadan aynı) -->
+<script src="{{ url_for('static', filename='bg.js') }}"></script>
+</body>
+</html>
