@@ -8,17 +8,106 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         .auth-card { max-width: 420px; }
-        .auth-tabs { display: flex; gap: 0; margin-bottom: 28px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
-        .auth-tab { flex: 1; padding: 10px; text-align: center; font-size: 0.85rem; font-weight: 500; cursor: pointer; background: transparent; border: none; color: var(--text-muted); transition: all 0.2s; font-family: var(--font); }
-        .auth-tab.active { background: var(--red-dim); color: var(--text); border-bottom: 2px solid var(--red); }
+
+        .auth-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 5px;
+            border: 1px solid var(--border);
+        }
+        .auth-tab {
+            flex: 1; padding: 10px;
+            text-align: center; font-size: 0.83rem; font-weight: 500;
+            cursor: pointer; background: transparent; border: none;
+            color: var(--text-muted); transition: all 0.2s;
+            font-family: var(--font); border-radius: 7px;
+        }
+        .auth-tab.active {
+            background: var(--red-dim);
+            color: var(--text);
+            border: 1px solid rgba(220,20,60,0.35);
+            box-shadow: 0 0 12px rgba(220,20,60,0.15);
+        }
+
         .auth-form { display: none; }
         .auth-form.active { display: block; }
+
         .auth-input-wrap { margin-bottom: 16px; }
-        .auth-input-wrap label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 7px; }
-        .auth-btn { width: 100%; padding: 13px; border: 1.5px solid var(--red); border-radius: 8px; background: var(--red-dim); color: #fff; font-family: var(--font); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
-        .auth-btn:hover { background: rgba(220,20,60,0.3); transform: translateY(-1px); }
-        .auth-error { background: rgba(255,23,68,0.1); border: 1px solid rgba(255,23,68,0.3); border-radius: 8px; padding: 10px 14px; font-size: 0.8rem; color: #ff6b6b; margin-top: 12px; display: none; }
-        .auth-divider { text-align: center; font-size: 0.72rem; color: var(--text-muted); margin: 6px 0 4px; }
+        .auth-input-wrap label {
+            display: block; font-size: 0.75rem;
+            color: var(--text-muted); margin-bottom: 8px;
+            letter-spacing: 0.04em;
+        }
+
+        /* Input override — daha şık */
+        .auth-input-wrap input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 0.88rem;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .auth-input-wrap input:focus {
+            border-color: rgba(220,20,60,0.5);
+            background: rgba(220,20,60,0.05);
+            box-shadow: 0 0 0 3px rgba(220,20,60,0.08);
+        }
+        .auth-input-wrap input::placeholder { color: rgba(240,232,234,0.3); }
+
+        .auth-btn {
+            width: 100%; padding: 13px;
+            border: 1.5px solid var(--red);
+            border-radius: 10px;
+            background: var(--red-dim);
+            color: #fff; font-family: var(--font);
+            font-size: 0.9rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; margin-top: 8px;
+            letter-spacing: 0.03em;
+        }
+        .auth-btn:hover {
+            background: rgba(220,20,60,0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(220,20,60,0.25);
+        }
+
+        .auth-error {
+            background: rgba(255,23,68,0.08);
+            border: 1px solid rgba(255,23,68,0.3);
+            border-radius: 8px; padding: 10px 14px;
+            font-size: 0.8rem; color: #ff6b6b;
+            margin-top: 12px; display: none;
+        }
+        .auth-success {
+            background: rgba(0,230,118,0.08);
+            border: 1px solid rgba(0,230,118,0.25);
+            border-radius: 8px; padding: 10px 14px;
+            font-size: 0.8rem; color: #00e676;
+            margin-top: 12px; display: none;
+        }
+
+        .forgot-link {
+            display: block; text-align: right;
+            font-size: 0.73rem; color: var(--text-muted);
+            margin-top: 8px; cursor: pointer;
+            transition: color 0.2s;
+        }
+        .forgot-link:hover { color: var(--red); }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-soft);
+        }
     </style>
 </head>
 <body>
@@ -37,58 +126,55 @@
                     <p class="subtitle">AI Karar Destek Sistemi</p>
                 </div>
             </div>
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                <span class="mono">AKTİF</span>
+            </div>
         </div>
         <div class="divider"></div>
 
         <div class="auth-tabs">
-            <button class="auth-tab active" onclick="switchTab('giris')">Giriş Yap</button>
-            <button class="auth-tab" onclick="switchTab('kayit')">Kayıt Ol</button>
+            <button class="auth-tab active" onclick="switchTab('giris', this)">Giriş Yap</button>
+            <button class="auth-tab" onclick="switchTab('kayit', this)">Kayıt Ol</button>
         </div>
 
         <!-- GİRİŞ -->
         <div class="auth-form active" id="girisForm">
             <div class="auth-input-wrap">
-                <label>E-posta</label>
-                <div class="input-wrap full">
-                    <input type="email" id="girisEmail" placeholder="ornek@email.com">
-                </div>
+                <label>E-POSTA</label>
+                <input type="email" id="girisEmail" placeholder="ornek@email.com">
             </div>
             <div class="auth-input-wrap">
-                <label>Şifre</label>
-                <div class="input-wrap full">
-                    <input type="password" id="girisPassword" placeholder="••••••••">
-                </div>
+                <label>ŞİFRE</label>
+                <input type="password" id="girisPassword" placeholder="••••••••">
+                <span class="forgot-link" onclick="sifremiUnuttum()">Şifremi unuttum</span>
             </div>
-            <button class="auth-btn" onclick="girisYap()">Giriş Yap</button>
+            <button class="auth-btn" onclick="girisYap()">Giriş Yap →</button>
             <div class="auth-error" id="girisError"></div>
+            <div class="auth-success" id="girisSuccess"></div>
         </div>
 
         <!-- KAYIT -->
         <div class="auth-form" id="kayitForm">
             <div class="auth-input-wrap">
-                <label>Ad Soyad</label>
-                <div class="input-wrap full">
-                    <input type="text" id="kayitAd" placeholder="Adınız Soyadınız">
-                </div>
+                <label>AD SOYAD</label>
+                <input type="text" id="kayitAd" placeholder="Adınız Soyadınız">
             </div>
             <div class="auth-input-wrap">
-                <label>E-posta</label>
-                <div class="input-wrap full">
-                    <input type="email" id="kayitEmail" placeholder="ornek@email.com">
-                </div>
+                <label>E-POSTA</label>
+                <input type="email" id="kayitEmail" placeholder="ornek@email.com">
             </div>
             <div class="auth-input-wrap">
-                <label>Şifre</label>
-                <div class="input-wrap full">
-                    <input type="password" id="kayitPassword" placeholder="En az 6 karakter">
-                </div>
+                <label>ŞİFRE</label>
+                <input type="password" id="kayitPassword" placeholder="En az 6 karakter">
             </div>
-            <button class="auth-btn" onclick="kayitOl()">Kayıt Ol</button>
+            <button class="auth-btn" onclick="kayitOl()">Kayıt Ol →</button>
             <div class="auth-error" id="kayitError"></div>
+            <div class="auth-success" id="kayitSuccess"></div>
         </div>
 
-        <div class="auth-divider" style="margin-top:18px;">
-            <span class="mono" style="font-size:0.65rem;opacity:0.4;">● kerim çalışkan</span>
+        <div class="auth-footer">
+            <span class="mono" style="font-size:0.65rem;opacity:0.35;">● kerim çalışkan</span>
         </div>
     </div>
 </div>
@@ -96,7 +182,7 @@
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey:            "AIzaSyC8SZKRBMg81SRyjIZuqijDeM2GBRkcQHA",
@@ -111,6 +197,12 @@ const firebaseApp = initializeApp(firebaseConfig);
 const authInst   = getAuth(firebaseApp);
 
 async function sendTokenToServer(user) {
+    // Email doğrulanmamışsa giriş yapma
+    if (!user.emailVerified) {
+        await sendEmailVerification(user);
+        showError("girisError", "E-posta adresiniz doğrulanmamış. Doğrulama e-postası gönderildi, lütfen gelen kutunuzu kontrol edin.");
+        return;
+    }
     const token = await user.getIdToken();
     const resp  = await fetch("/login", {
         method: "POST",
@@ -140,9 +232,25 @@ window.kayitOl = async function() {
     try {
         const cred = await createUserWithEmailAndPassword(authInst, email, password);
         if (ad) await updateProfile(cred.user, { displayName: ad });
-        await sendTokenToServer(cred.user);
+        // Doğrulama emaili gönder
+        await sendEmailVerification(cred.user);
+        showSuccess("kayitSuccess", "Kayıt başarılı! E-posta adresinize doğrulama linki gönderildi. Lütfen doğrulayıp giriş yapın.");
     } catch(e) {
         showError("kayitError", turkceHata(e.code));
+    }
+};
+
+window.sifremiUnuttum = async function() {
+    const email = document.getElementById("girisEmail").value.trim();
+    if (!email) {
+        showError("girisError", "Lütfen önce e-posta adresinizi girin.");
+        return;
+    }
+    try {
+        await sendPasswordResetEmail(authInst, email);
+        showSuccess("girisSuccess", "Şifre sıfırlama e-postası gönderildi. Gelen kutunuzu kontrol edin.");
+    } catch(e) {
+        showError("girisError", turkceHata(e.code));
     }
 };
 
@@ -150,6 +258,18 @@ function showError(id, msg) {
     const el = document.getElementById(id);
     el.textContent = msg;
     el.style.display = "block";
+    const sId = id.replace("Error", "Success");
+    const s = document.getElementById(sId);
+    if (s) s.style.display = "none";
+}
+
+function showSuccess(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = "block";
+    const eId = id.replace("Success", "Error");
+    const e = document.getElementById(eId);
+    if (e) e.style.display = "none";
 }
 
 function turkceHata(code) {
@@ -160,20 +280,20 @@ function turkceHata(code) {
         "auth/weak-password":       "Şifre en az 6 karakter olmalı.",
         "auth/invalid-email":       "Geçersiz e-posta adresi.",
         "auth/invalid-credential":  "E-posta veya şifre hatalı.",
+        "auth/too-many-requests":   "Çok fazla deneme. Lütfen bekleyin.",
     };
     return map[code] || "Bir hata oluştu: " + code;
 }
 </script>
 
 <script>
-function switchTab(tab) {
+function switchTab(tab, el) {
     document.querySelectorAll(".auth-tab").forEach(function(t){ t.classList.remove("active"); });
     document.querySelectorAll(".auth-form").forEach(function(f){ f.classList.remove("active"); });
     document.getElementById(tab + "Form").classList.add("active");
-    event.target.classList.add("active");
+    el.classList.add("active");
 }
 
-// Enter tuşu
 document.addEventListener("keydown", function(e) {
     if (e.key !== "Enter") return;
     if (document.getElementById("girisForm").classList.contains("active")) girisYap();
@@ -181,7 +301,6 @@ document.addEventListener("keydown", function(e) {
 });
 </script>
 
-<!-- Arka plan animasyonları (ana sayfadan aynı) -->
 <script src="{{ url_for('static', filename='bg.js') }}"></script>
 </body>
 </html>
